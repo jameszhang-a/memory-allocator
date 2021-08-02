@@ -1,0 +1,10 @@
+alloc8            :a simple 8 byte allocation first fit
+alloc1            :a simple 1 byte allocation first fit
+alloc4080         :allocate the entire free block
+alloc4078         :allocate almost the entire free block
+alloc_nospace     :allocation is too big to fit in available space
+writeable         :write to a chunk from Mem_Alloc and check the value
+align             :first pointer returned is 4-byte aligned
+mem_free              :a few allocations in multiples of 4 bytes followed by frees
+coalesce          :check for coalesce free space
+firstfit          : check for first fit implementation

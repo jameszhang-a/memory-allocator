@@ -1,0 +1,11 @@
+#!/bin/bash
+./alloc8
+./alloc1
+./alloc4080
+./alloc4078
+./alloc_nospace 
+./writeable     
+./align         
+./mem_free         
+./coalesce 
+./firstfit      
