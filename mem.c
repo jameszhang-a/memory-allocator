@@ -18,7 +18,8 @@
 // fitting policy
 enum POLICY policy;
 
-/* The BLOCK_HEADER structure serves as the header for each block.
+/** 
+ ** The BLOCK_HEADER structure serves as the header for each block.
  * 
  * The heaaders we are using for this project are similar to those described 
  * in the book for the implicit free list in section 9.9.6, and in lecture
@@ -56,37 +57,42 @@ BLOCK_HEADER *first_header; // this global variable is a pointer to the first he
 // *********************************************************************************
 // *********************************************************************************
 
-/*  We recommend you write some helper functions to unpack the headers 
- *  and retrieve specific pieces of data. I wrote functions named:
+/**  
+ ** We recommend you write some helper functions to unpack the headers 
+ ** and retrieve specific pieces of data. I wrote functions named:
  *  
- *  1) Is_Allocated // return 1 if allocated 0 if not
- *  2) Is_Free      // return 1 if free 0 if not
- *  3) Get_Next_Header // unpacks the header and returns a pointer to the  
- *  the next header, NULL is this is the last BLOCK_HEADER
- *  4) Get_Size 
- *  5) Get_User_Pointer // the pointer that the user can write data to
- *  6) Get_Header_From_User_Pointer // the pointer that the user writes data to - used in Mem_Free
- *  7) Set_Next_Pointer
- *  8) Set_Allocated // set the allocated bit to 1
- *  9) Set_Free // set the allocated bit to 0
- *  10) Set_Size 
+ * TODO  1) Is_Allocated // return 1 if allocated 0 if not
+ * TODO  2) Is_Free      // return 1 if free 0 if not
+ * TODO  3) Get_Next_Header // unpacks the header and returns a pointer to the  
+ * TODO  the next header, NULL is this is the last BLOCK_HEADER
+ * TODO  4) Get_Size 
+ * TODO  5) Get_User_Pointer // the pointer that the user can write data to
+ * TODO  6) Get_Header_From_User_Pointer // the pointer that the user writes data to - used in Mem_Free
+ * TODO  7) Set_Next_Pointer
+ * TODO  8) Set_Allocated // set the allocated bit to 1
+ * TODO  9) Set_Free // set the allocated bit to 0
+ * TODO  10) Set_Size 
  */
 
 // *********************************************************************************
 // *********************************************************************************
 // *********************************************************************************
 
-/* Function used to Initialize the memory allocator */
-/* Do not change this function */
-/* Written by Cherin Joseph modified by Michael Doescher */
-/* Not intended to be called more than once by a program */
-/* Argument - sizeOfRegion: Specifies the size of the chunk which needs to be allocated 
-   	      policy: indicates the policy to use eg: best fit is 0*/
-/* Returns 0 on success and -1 on failure */
-/* Notes we're using mmap here instead of sbrk as in the book to take advantage of caching
+/**
+ ** Function used to Initialize the memory allocator
+ *! Do not change this function
+ * Written by Cherin Joseph modified by Michael Doescher
+ * 
+ * Not intended to be called more than once by a program
+
+ * Notes we're using mmap here instead of sbrk as in the book to take advantage of caching
  * as described in the OS lectures
- *
+ * 
  * Study the end of the function where the headers are initialized for hints!
+ * 
+ * @param sizeOfRegion:  Specifies the size of the chunk which needs to be allocated 
+ * @param policy_input:  indicates the policy to use eg: best fit is 0
+ * @return            :  0 on success and -1 on failure
  */
 int Mem_Init(int sizeOfRegion, enum POLICY policy_input)
 {   
@@ -163,8 +169,28 @@ int Mem_Init(int sizeOfRegion, enum POLICY policy_input)
  *     - the free block must have a minimum payload size of 4 bytes 
  *     - do not split if the mininmum payload size can not be reserved */
 
-/* Tips: Be careful with pointer arithmetic */
+
+/**
+ ** Function for allocating 'size' bytes
+ *
+ * TODO:    Check for sanity of size - Return NULL when appropriate - at least 1 byte
+ * TODO:    Traverse the list of blocks and locate a free block which can accommodate
+ *              the requested size based on the policy (e.g. first fit, best fit)
+ * TODO:    The next header must be aligned with an address divisible by 4
+ *              Add padding to accomodate this requirement
+ * TODO:    When allocating a block - split it into two blocks when possible
+ *          ? the allocated block should go first and the free block second
+ *          ? the free block must have a minimum payload size of 4 bytes 
+ *          ? do not split if the mininmum payload size can not be reserved
+ * 
+ * 
+ * @return  :   the user writeable address of allocated block 
+ *                  ! this is the first byte of the payload, not the address of the header
+ *              NULL on failure
+ */
+
 void* Mem_Alloc(int size) {
+/* Tips: Be careful with pointer arithmetic */
 
     /* Your code should go in here */
     
@@ -175,17 +201,18 @@ void* Mem_Alloc(int size) {
 // *********************************************************************************
 // *********************************************************************************
 
-/* Function for freeing up a previously allocated block */
-/* Argument - ptr: Address of the block to be freed up i
- *     - this is the first address of the payload */
-/* Returns 0 on success */
-/* Returns -1 on failure */
-/* Here is what this function should accomplish */
-/* - Return -1 if ptr is NULL */
-/*  Return -1 if ptr is not pointing to the first byte of an allocated block
- *     - hint: check all block headers, determine if the alloc bit is set */
-/* - Mark the block as free */
-/* - Coalesce if one or both of the immediate neighbours are free */
+
+/**
+ ** Function for freeing up a previously allocated block
+ * TODO:    Mark the block as free
+ * TODO:    Coalesce if one or both of the immediate neighbours are free 
+ * 
+ *  @param ptr  :   Address of the block to be freed up i, this is the first address of the payload
+ *  @return     :   0 on success
+ *                  -1 if ptr is NULL
+ *                  -1 if ptr is not pointing to the first byte of an allocated block
+ *                ? hint: check all block headers, determine if the alloc bit is set
+ */
 int Mem_Free(void *ptr)
 {
     /* Your code should go in here */
