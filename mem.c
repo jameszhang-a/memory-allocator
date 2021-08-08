@@ -62,18 +62,56 @@ BLOCK_HEADER *first_header;  // this global variable is a pointer to the first h
  ** We recommend you write some helper functions to unpack the headers 
  ** and retrieve specific pieces of data. I wrote functions named:
  *  
- * TODO  1) Is_Allocated // return 1 if allocated 0 if not
- * TODO  2) Is_Free      // return 1 if free 0 if not
- * TODO  3) Get_Next_Header // unpacks the header and returns a pointer to the  
- * TODO  the next header, NULL is this is the last BLOCK_HEADER
- * TODO  4) Get_Size 
- * TODO  5) Get_User_Pointer // the pointer that the user can write data to
- * TODO  6) Get_Header_From_User_Pointer // the pointer that the user writes data to - used in Mem_Free
+ *   1) Is_Allocated // return 1 if allocated 0 if not
+ *   2) Is_Free      // return 1 if free 0 if not
+ *   3) Get_Next_Header // unpacks the header and returns a pointer to the  
+ *           the next header, NULL is this is the last BLOCK_HEADER
+ *   4) Get_Size 
+ *   5) Get_User_Pointer // the pointer that the user can write data to
+ *   6) Get_Header_From_User_Pointer // the pointer that the user writes data to - used in Mem_Free
  * TODO  7) Set_Next_Pointer
  * TODO  8) Set_Allocated // set the allocated bit to 1
  * TODO  9) Set_Free // set the allocated bit to 0
  * TODO  10) Set_Size 
  */
+
+/**
+ * @param  p    pointer to a block header
+ * @return      1 if allocated, 0 if not
+ */
+int Is_Allocated(BLOCK_HEADER *p) {
+    return p->packed_pointer & 1;
+}
+
+void Set_Allocated(BLOCK_HEADER *p) {
+    int *pointer = p->packed_pointer;
+    int info = *pointer;
+    info = info | 1;
+}
+
+/**
+ * @param  p    pointer to a block header
+ * @return      1 if free, 0 if not
+ */
+int Is_Free(BLOCK_HEADER *phead) { return !Is_Allocated(p); }
+
+void Set_Free(BLOCK_HEADER *phead) { return; }
+
+void *Get_Next_Header(BLOCK_HEADER *cur) { return cur->packed_pointer; }
+
+/**
+ * @param  p    pointer to a block header
+ * @return      size of the block
+ */
+int Get_Size(BLOCK_HEADER *p) { return p->size; }
+
+void *Get_User_Pointer(BLOCK_HEADER *cur) { return cur + sizeof(BLOCK_HEADER); }
+
+void *Get_Header_From_User_Pointer(void *cur) { return cur - sizeof(BLOCK_HEADER); }
+
+void Set_Next_Pointer(BLOCK_HEADER *cur) { return; }
+
+void Set_Size(BLOCK_HEADER *p) { return; }
 
 // #################################################################################
 // ###############               Init Function                  ####################
@@ -178,6 +216,10 @@ void *Mem_Alloc(int size) {
     /* Tips: Be careful with pointer arithmetic */
 
     /* Your code should go in here */
+    BLOCK_HEADER *temp = first_header;
+    while (/* condition */) {
+        /* code */
+    }
 
     return NULL;
 }
