@@ -9,8 +9,6 @@ typedef struct BLOCK_HEADER {
 BLOCK_HEADER *first_header;  // this global variable is a pointer to the first header
 
 int main() {
-    BLOCK_HEADER *head;
-    head->packed_pointer = malloc(sizeof(BLOCK_HEADER));
-    printf("pointer: %p	, size: %i\n", head->packed_pointer, head->size);
-    
+    int x = NULL;
+    printf("%i", x);
 }

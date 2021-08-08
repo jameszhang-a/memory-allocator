@@ -76,13 +76,20 @@ BLOCK_HEADER *first_header;  // this global variable is a pointer to the first h
  */
 
 /**
- * @param  p    pointer to a block header
+ * Checks if the header is allocated
+ * 
+ * @param   p    pointer to a block header
  * @return      1 if allocated, 0 if not
  */
 int Is_Allocated(BLOCK_HEADER *p) {
     return p->packed_pointer & 1;
 }
 
+/**
+ * Sets the allocated bit to 1
+ * 
+ * @param   p    pointer to a block header
+ */
 void Set_Allocated(BLOCK_HEADER *p) {
     int *pointer = p->packed_pointer;
     int info = *pointer;
@@ -90,28 +97,66 @@ void Set_Allocated(BLOCK_HEADER *p) {
 }
 
 /**
- * @param  p    pointer to a block header
+ * Checks if the header is free
+ * 
+ * @param   p    pointer to a block header
  * @return      1 if free, 0 if not
  */
 int Is_Free(BLOCK_HEADER *phead) { return !Is_Allocated(p); }
 
+/**
+ * Sets the allocated bit to 0
+ * 
+ * @param   p    pointer to a block header
+ */
 void Set_Free(BLOCK_HEADER *phead) { return; }
 
+/**
+ * unpacks the header and returns a pointer to the the next header
+ * 
+ * @param   cur Current header
+ * @return  pointer to the next header, NULL if current is last
+ */
 void *Get_Next_Header(BLOCK_HEADER *cur) { return cur->packed_pointer; }
 
 /**
- * @param  p    pointer to a block header
- * @return      size of the block
+ * Returns size of payload only
+ * 
+ * @param   p    pointer to a block header
+ * @return  size of the block
  */
 int Get_Size(BLOCK_HEADER *p) { return p->size; }
 
+/**
+ * Returns an address that user can use, given a head address
+ * 
+ * @param   cur Current header
+ * @return  Pointer to memory that user can use
+ */
 void *Get_User_Pointer(BLOCK_HEADER *cur) { return cur + sizeof(BLOCK_HEADER); }
 
+/**
+ * Returns an address that to head, given an address the user can use
+ * 
+ * @param   cur Current memory
+ * @return  Pointer to head
+ */
 void *Get_Header_From_User_Pointer(void *cur) { return cur - sizeof(BLOCK_HEADER); }
 
+/**
+ * Sets the next pointer of a block
+ * 
+ * @param   cur Current header
+ */
 void Set_Next_Pointer(BLOCK_HEADER *cur) { return; }
 
-void Set_Size(BLOCK_HEADER *p) { return; }
+/**
+ * Sets the size of the block
+ * 
+ * @param   p       pointer to a block header
+ * @param   size    size of the usable memory
+ */
+void Set_Size(BLOCK_HEADER *p, int size) { return; }
 
 // #################################################################################
 // ###############               Init Function                  ####################
@@ -197,8 +242,8 @@ int Mem_Init(int sizeOfRegion, enum POLICY policy_input) {
 /**
  ** Function for allocating 'size' bytes. 
  *
- * TODO:    Check for sanity of size - Return NULL when appropriate - at least 1 byte. 
- * TODO:    Traverse the list of blocks and locate a free block which can accommodate
+ *     Check for sanity of size - Return NULL when appropriate - at least 1 byte. 
+ *     Traverse the list of blocks and locate a free block which can accommodate
  *              the requested size based on the policy (e.g. first fit, best fit). 
  * TODO:    The next header must be aligned with an address divisible by 4. 
  *              Add padding to accomodate this requirement. 
@@ -207,19 +252,33 @@ int Mem_Init(int sizeOfRegion, enum POLICY policy_input) {
  *          ? the free block must have a minimum payload size of 4 bytes.  
  *          ? do not split if the mininmum payload size can not be reserved. 
  * 
- * 
+ * @param   size    How much free space needed
  * @return  :   the user writeable address of allocated block 
  *                  ! this is the first byte of the payload, not the address of the header
  *              NULL on failure
  */
 void *Mem_Alloc(int size) {
-    /* Tips: Be careful with pointer arithmetic */
+    // Checks size is one or larger
+    if (size < 1) return NULL;
 
-    /* Your code should go in here */
+    // Find a suitable block
     BLOCK_HEADER *temp = first_header;
-    while (/* condition */) {
-        /* code */
+
+    // Continue until a header is free and large enough
+    while (Is_Allocated(temp) || temp->size < size) {
+        temp = Get_Next_Header(temp);
+        if (temp == NULL) return temp;
     }
+
+    // Once a suitable block has been found
+    // Mark as allocated
+    Set_Allocated(temp);
+
+    // Set requested size
+    Set_Size(temp, size);
+
+    // Get distance to next pointer
+    
 
     return NULL;
 }
