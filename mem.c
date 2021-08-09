@@ -154,7 +154,9 @@ void *Get_Header_From_User_Pointer(void *cur) { return (unsigned char *)cur - si
  * 
  * @param   cur Current header
  */
-void Set_Next_Pointer(BLOCK_HEADER *cur, BLOCK_HEADER *dst) { return; }
+void Set_Next_Pointer(BLOCK_HEADER *cur, BLOCK_HEADER *dst) {
+    cur->packed_pointer = dst;
+}
 
 /**
  * Sets the size of the block
@@ -315,34 +317,50 @@ void *Mem_Alloc(int size) {
 
     BLOCK_HEADER *free;
 
+    printf("Head at: %p\n", first_header);
+
     // Find a suitable block
     if ((free = Get_Next_Free(size)) == NULL) {
         printf("Didn't find free spot\n Do something about it\n");
         return NULL;
     }
 
+    printf("Free block at: %p\tSize is: %i\tPoints t0: %p\n\n", free, free->size, free->packed_pointer);
+
+    // Gets size with padding to %4
+    int resize = Pad_Size(size);
+
+    printf("Padded size: %i\n", resize);
+
     // If there is only size of header left, no split
-    if (free->size - sizeof(BLOCK_HEADER) == sizeof(BLOCK_HEADER)) {
+    if (free->size - sizeof(BLOCK_HEADER) - resize < 4) {
+        printf("\nNo need to split\n\n");
+
         free->packed_pointer = Set_Allocated(free->packed_pointer);
-        return free;
+        Set_Size(free, size);
+        // return what the user can use
+        return Get_User_Pointer(free);
     }
 
-    // header for splitting the block
+    // Otherwise, we need to split and get a new head
+    // Header for splitting the block
     BLOCK_HEADER *next;
+    next = Get_User_Pointer(free) + resize;
 
-    // int dest
-    //     Set_Next_Pointer(next, );
+    printf("Split at: %p\n", next);
 
-    // Once a suitable block has been found
-    // Mark as allocated
-    Set_Allocated(free);
+    // Update the pointers
+    Set_Next_Pointer(next, (BLOCK_HEADER *)free->packed_pointer);
+    printf("Next now points to: %p\n", next->packed_pointer);
+    Set_Next_Pointer(free, next);
+    printf("Free poitns to: %p\n", free->packed_pointer);
 
-    // Set requested size
+    // Update split header
+    Set_Size(next, free->size - sizeof(BLOCK_HEADER) - resize);
+
+    // Update old header
     Set_Size(free, size);
-
-    // Get distance to next pointer
-
-    return NULL;
+    free->packed_pointer = Set_Allocated(free);
 }
 
 // #################################################################################
@@ -466,4 +484,8 @@ int main() {
 
     void *head_head = Get_Header_From_User_Pointer(head_user);
     printf("head starts at: %p\n", head_head);
+
+    printf("\n\n");
+
+    int *x = Mem_Alloc(3);
 }
