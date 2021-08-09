@@ -1,6 +1,8 @@
 /* a few allocations in multiples of 4 bytes followed by frees */
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
+
 #include "mem.h"
 
 int main() {
@@ -27,6 +29,8 @@ int main() {
 
    assert(Mem_Free((void*)0x28ff44) == -1);
    Mem_Dump();
+
+   printf("mem_free.c passes!\n");
 
    exit(0);
 }

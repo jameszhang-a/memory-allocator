@@ -1,6 +1,8 @@
 /* check for coalesce free space */
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
+
 #include "mem.h"
 
 int main() {
@@ -26,6 +28,8 @@ int main() {
 
    ptr[2] = Mem_Alloc(1600);
    assert(ptr[2] != NULL);
+
+   printf("coaleasce.c passes!\n");
 
    exit(0);
 }

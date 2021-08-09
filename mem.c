@@ -82,7 +82,7 @@ BLOCK_HEADER *first_header;  // this global variable is a pointer to the first h
  * @return      1 if allocated, 0 if not
  */
 int Is_Allocated(BLOCK_HEADER *p) {
-    return (unsigned)p % 2;
+    return (unsigned)p->packed_pointer % 2;
 }
 
 /**
@@ -187,24 +187,36 @@ int Pad_Size(int x) {
  * @return void* pointer to the next free block
  */
 void *Get_Next_Free(int size) {
+    printf("Need size of: %i", size);
+    printf("\n\n########### Begin Traversal ###########\n");
     BLOCK_HEADER *temp = first_header;
+    printf("HEAD\ncur at: %p\t size: %i\t next: %p\n\n", temp, temp->size, temp->packed_pointer);
+
+    int i = 0;
     // Searches through all of the blocks
     while (temp->packed_pointer != NULL) {
         // If block already allocated
         if (Is_Allocated(temp)) {
-            BLOCK_HEADER *tempAddress = Set_Free(temp);
-            temp = Get_Next_Header(tempAddress);
+            printf("Is allocated\n");
+            void *tempAddress = Set_Free(temp->packed_pointer);
+            printf("%i: cur at: %p\t size: %i\t next: %p\n", i, temp, temp->size, temp->packed_pointer);
+            temp = tempAddress;
+            printf("new: %p, at: %p\n\n", temp, tempAddress);
         }
 
         // If block doesn't have enough size
         else if (Get_Size(temp) < size) {
+            printf("Not big enough\n");
+            printf("%i, cur at: %p\t size: %i\t next: %p\n", i, temp, temp->size, temp->packed_pointer);
             temp = Get_Next_Header(temp);
         }
 
         // Perfect block
         else {
+            printf("%i: Found it: %p\n", i, temp);
             return temp;
         }
+        i++;
     }
 
     printf("Can't find free space, something wrong\n");
@@ -319,16 +331,16 @@ void *Mem_Alloc(int size) {
 
     printf("Head at: %p\n", first_header);
 
+    // Gets size with padding to %4
+    int resize = Pad_Size(size);
+
     // Find a suitable block
     if ((free = Get_Next_Free(size)) == NULL) {
         printf("Didn't find free spot\n Do something about it\n");
         return NULL;
     }
 
-    printf("Free block at: %p\tSize is: %i\tPoints t0: %p\n\n", free, free->size, free->packed_pointer);
-
-    // Gets size with padding to %4
-    int resize = Pad_Size(size);
+    printf("Free block at: %p\tSize is: %i\tPoints to: %p\n\n", free, free->size, free->packed_pointer);
 
     printf("Padded size: %i\n", resize);
 
@@ -351,16 +363,19 @@ void *Mem_Alloc(int size) {
 
     // Update the pointers
     Set_Next_Pointer(next, (BLOCK_HEADER *)free->packed_pointer);
-    printf("Next now points to: %p\n", next->packed_pointer);
+    printf("Next is: %p\t points to: %p\n", next, next->packed_pointer);
     Set_Next_Pointer(free, next);
-    printf("Free poitns to: %p\n", free->packed_pointer);
+    printf("Free is: %p\t points to: %p\n", free, free->packed_pointer);
 
     // Update split header
     Set_Size(next, free->size - sizeof(BLOCK_HEADER) - resize);
 
     // Update old header
     Set_Size(free, size);
-    free->packed_pointer = Set_Allocated(free);
+    free->packed_pointer = Set_Allocated(free->packed_pointer);
+
+    printf("Returning: %p\n\n\n", Get_User_Pointer(free));
+    return Get_User_Pointer(free);
 }
 
 // #################################################################################
@@ -468,8 +483,11 @@ void Mem_Dump() {
  * 
  * @return int 
  */
+
 int main() {
     Mem_Init(4096, FIRST_FIT) == 0;
+
+/*
     BLOCK_HEADER *block = first_header;
     printf("First header at: %p\n", block);
     printf("Space: %i\n", block->size);
@@ -487,5 +505,14 @@ int main() {
 
     printf("\n\n");
 
+    printf("Block: %p \t point: %p \t, is allocated: %i\n", block, block->packed_pointer, Is_Allocated(block));
+
+    block->packed_pointer = Set_Allocated(block->packed_pointer);
+    printf("Block: %p \t point: %p \t, is allocated: %i\n", block, block->packed_pointer, Is_Allocated(block));
+
+    */
     int *x = Mem_Alloc(3);
+    int *y = Mem_Alloc(8);
+
+    Mem_Dump();
 }

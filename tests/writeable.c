@@ -1,6 +1,8 @@
 /* write to a chunk from Mem_Alloc and check the value*/
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
+
 #include "mem.h"
 
 int main() {
@@ -9,5 +11,8 @@ int main() {
    assert(ptr != NULL);
    *ptr = 42;   // check pointer is in a writeable page
    assert(*ptr == 42);
+
+   printf("weiteable.c passes!\n");
+
    exit(0);
 }

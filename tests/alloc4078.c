@@ -1,6 +1,8 @@
 /* an 8 byte allocation */
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
+
 #include "mem.h"
 
 int main() {
@@ -9,5 +11,8 @@ int main() {
    void* ptr = Mem_Alloc(4078);
    Mem_Dump();
    assert(ptr != NULL);
+
+   printf("alloc4978.c passes!\n");
+
    exit(0);
 }
