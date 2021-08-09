@@ -62,17 +62,17 @@ BLOCK_HEADER *first_header;  // this global variable is a pointer to the first h
  ** We recommend you write some helper functions to unpack the headers
  ** and retrieve specific pieces of data. I wrote functions named:
  *  
- *   1) Is_Allocated // return 1 if allocated 0 if not
- *   2) Is_Free      // return 1 if free 0 if not
- *   3) Get_Next_Header // unpacks the header and returns a pointer to the  
+ **   1) Is_Allocated // return 1 if allocated 0 if not
+ **   2) Is_Free      // return 1 if free 0 if not
+ **   3) Get_Next_Header // unpacks the header and returns a pointer to the  
  *           the next header, NULL is this is the last BLOCK_HEADER
- *   4) Get_Size 
- *   5) Get_User_Pointer // the pointer that the user can write data to
- *   6) Get_Header_From_User_Pointer // the pointer that the user writes data to - used in Mem_Free
+ **   4) Get_Size 
+ **   5) Get_User_Pointer // the pointer that the user can write data to
+ **   6) Get_Header_From_User_Pointer // the pointer that the user writes data to - used in Mem_Free
  * TODO  7) Set_Next_Pointer
- * TODO  8) Set_Allocated // set the allocated bit to 1
- * TODO  9) Set_Free // set the allocated bit to 0
- * TODO  10) Set_Size
+ **   8) Set_Allocated // set the allocated bit to 1
+ **   9) Set_Free // set the allocated bit to 0
+ **  10) Set_Size
  */
 
 /**
@@ -82,7 +82,7 @@ BLOCK_HEADER *first_header;  // this global variable is a pointer to the first h
  * @return      1 if allocated, 0 if not
  */
 int Is_Allocated(BLOCK_HEADER *p) {
-    return 1;
+    return (unsigned)p % 2;
 }
 
 /**
@@ -91,9 +91,10 @@ int Is_Allocated(BLOCK_HEADER *p) {
  * @param   p    pointer to a block header
  */
 void *Set_Allocated(BLOCK_HEADER *p) {
-    int *pointer = p->packed_pointer;
-    int info = *pointer;
-    info = info | 1;
+    if (!Is_Allocated(p))
+        return (unsigned char *)p + 1;
+    else
+        printf("Trying to allocate what is already allocated!!!\n\n");
 }
 
 /**
@@ -102,14 +103,19 @@ void *Set_Allocated(BLOCK_HEADER *p) {
  * @param   p    pointer to a block header
  * @return      1 if free, 0 if not
  */
-int Is_Free(BLOCK_HEADER *phead) { return 0; }
+int Is_Free(BLOCK_HEADER *p) { return !Is_Allocated(p); }
 
 /**
  * Sets the allocated bit to 0
  * 
  * @param   p    pointer to a block header
  */
-void *Set_Free(BLOCK_HEADER *phead) { return; }
+void *Set_Free(BLOCK_HEADER *p) {
+    if (Is_Allocated(p))
+        return (unsigned char *)p - 1;
+    else
+        printf("Trying to free what is already free!!!\n\n");
+}
 
 /**
  * unpacks the header and returns a pointer to the the next header
@@ -117,7 +123,7 @@ void *Set_Free(BLOCK_HEADER *phead) { return; }
  * @param   cur Current header
  * @return  pointer to the next header, NULL if current is last
  */
-void *Get_Next_Header(BLOCK_HEADER *cur) { return cur->packed_pointer; }
+BLOCK_HEADER *Get_Next_Header(BLOCK_HEADER *cur) { return (BLOCK_HEADER *)cur->packed_pointer; }
 
 /**
  * Returns size of payload only
@@ -141,7 +147,7 @@ void *Get_User_Pointer(BLOCK_HEADER *cur) { return (unsigned char *)cur + sizeof
  * @param   cur Current memory
  * @return  Pointer to head
  */
-void *Get_Header_From_User_Pointer(void *cur) { return cur - sizeof(BLOCK_HEADER); }
+void *Get_Header_From_User_Pointer(void *cur) { return (unsigned char *)cur - sizeof(BLOCK_HEADER); }
 
 /**
  * Sets the next pointer of a block
@@ -156,7 +162,22 @@ void Set_Next_Pointer(BLOCK_HEADER *cur, BLOCK_HEADER *dst) { return; }
  * @param   p       pointer to a block header
  * @param   size    size of the usable memory
  */
-void Set_Size(BLOCK_HEADER *p, int size) { return; }
+void Set_Size(BLOCK_HEADER *p, int size) { p->size = size; }
+
+/**
+ * @brief Gives int padding if not divisiable by 4
+ * 
+ * @param x     requested size
+ * @return      Size padded to nearest 4 
+ */
+int Pad_Size(int x) {
+    int mod;
+
+    // Calculates how much til the next 4
+    // Adds what's needed
+    if ((mod = x % 4)) x += (4 - mod);
+    return x;
+}
 
 /**
  * @brief Finds the next available block
@@ -165,16 +186,21 @@ void Set_Size(BLOCK_HEADER *p, int size) { return; }
  */
 void *Get_Next_Free(int size) {
     BLOCK_HEADER *temp = first_header;
-
     // Searches through all of the blocks
     while (temp->packed_pointer != NULL) {
-        // If has room and free
+        // If block already allocated
         if (Is_Allocated(temp)) {
             BLOCK_HEADER *tempAddress = Set_Free(temp);
-            temp = (BLOCK_HEADER *)Get_Next_Header(tempAddress);
-        } else if (Get_Size(temp) < size) {
-            temp = (BLOCK_HEADER *)Get_Next_Header(temp);
-        } else {
+            temp = Get_Next_Header(tempAddress);
+        }
+
+        // If block doesn't have enough size
+        else if (Get_Size(temp) < size) {
+            temp = Get_Next_Header(temp);
+        }
+
+        // Perfect block
+        else {
             return temp;
         }
     }
@@ -284,25 +310,25 @@ int Mem_Init(int sizeOfRegion, enum POLICY policy_input) {
  *              NULL on failure
  */
 void *Mem_Alloc(int size) {
-    // Checks size is one or larger
+    // Checks size is 1 or larger
     if (size < 1) return NULL;
 
-    // Find a suitable block
     BLOCK_HEADER *free;
 
+    // Find a suitable block
     if ((free = Get_Next_Free(size)) == NULL) {
         printf("Didn't find free spot\n Do something about it\n");
         return NULL;
     }
 
-    // header for splitting the block
-    BLOCK_HEADER *next;
-
     // If there is only size of header left, no split
-    if (free->size == sizeof(BLOCK_HEADER)) {
+    if (free->size - sizeof(BLOCK_HEADER) == sizeof(BLOCK_HEADER)) {
         free->packed_pointer = Set_Allocated(free->packed_pointer);
         return free;
     }
+
+    // header for splitting the block
+    BLOCK_HEADER *next;
 
     // int dest
     //     Set_Next_Pointer(next, );
@@ -417,4 +443,27 @@ void Mem_Dump() {
     fflush(stdout);
 
     return;
+}
+
+/**
+ * @brief For testing purposes
+ * 
+ * @return int 
+ */
+int main() {
+    Mem_Init(4096, FIRST_FIT) == 0;
+    BLOCK_HEADER *block = first_header;
+    printf("First header at: %p\n", block);
+    printf("Space: %i\n", block->size);
+
+    printf("Next header is: %p\n", Get_Next_Header(block));
+
+    BLOCK_HEADER *next = Get_Next_Header(block);
+    printf("Next next is: %p\n", Get_Next_Header(next));
+
+    void *head_user = Get_User_Pointer(block);
+    printf("User starts at: %p\n", head_user);
+
+    void *head_head = Get_Header_From_User_Pointer(head_user);
+    printf("head starts at: %p\n", head_head);
 }
