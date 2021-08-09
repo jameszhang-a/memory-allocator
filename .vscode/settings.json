@@ -3,7 +3,7 @@
 		"c": "cd $dir && gcc -m32 $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt"
 	},
 	//"editor.defaultFormatter": "esbenp.prettier-vscode",
-	"C_Cpp.clang_format_fallbackStyle": "{BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 100}",
+	"C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0}",
 	"code-runner.runInTerminal": true,
 	"code-runner.saveFileBeforeRun": true,
 	"C_Cpp.autocompleteAddParentheses": true,

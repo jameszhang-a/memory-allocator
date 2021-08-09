@@ -82,7 +82,7 @@ BLOCK_HEADER *first_header;  // this global variable is a pointer to the first h
  * @return      1 if allocated, 0 if not
  */
 int Is_Allocated(BLOCK_HEADER *p) {
-    return p->packed_pointer & 1;
+    return 1;
 }
 
 /**
@@ -102,7 +102,7 @@ void Set_Allocated(BLOCK_HEADER *p) {
  * @param   p    pointer to a block header
  * @return      1 if free, 0 if not
  */
-int Is_Free(BLOCK_HEADER *phead) { return !Is_Allocated(p); }
+int Is_Free(BLOCK_HEADER *phead) { return 0; }
 
 /**
  * Sets the allocated bit to 0
@@ -157,6 +157,27 @@ void Set_Next_Pointer(BLOCK_HEADER *cur) { return; }
  * @param   size    size of the usable memory
  */
 void Set_Size(BLOCK_HEADER *p, int size) { return; }
+
+/**
+ * @brief Finds the next available block
+ * 
+ * @return void* pointer to the next free block
+ */
+void *Get_Next_Free(int size) {
+    BLOCK_HEADER *temp = first_header;
+
+    // Searches through all of the blocks
+    while (temp->packed_pointer != NULL) {
+        // If has room and free
+        if (Get_Size(temp) >= size && Is_Free(temp)) {
+            return temp;
+        }
+        temp = (BLOCK_HEADER *)Get_Next_Header(temp);
+    }
+
+    printf("Can't find free space, something wrong\n");
+    return NULL;
+}
 
 // #################################################################################
 // ###############               Init Function                  ####################
@@ -263,13 +284,7 @@ void *Mem_Alloc(int size) {
     if (size < 1) return NULL;
 
     // Find a suitable block
-    BLOCK_HEADER *temp = first_header;
-
-    // Continue until a header is free and large enough
-    while (Is_Allocated(temp) || temp->size < size) {
-        temp = Get_Next_Header(temp);
-        if (temp == NULL) return temp;
-    }
+    BLOCK_HEADER *temp = Get_Next_Free(size);
 
     // Once a suitable block has been found
     // Mark as allocated
@@ -279,7 +294,6 @@ void *Mem_Alloc(int size) {
     Set_Size(temp, size);
 
     // Get distance to next pointer
-    
 
     return NULL;
 }
