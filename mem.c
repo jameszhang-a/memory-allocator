@@ -19,28 +19,28 @@
 // fitting policy
 enum POLICY policy;
 
-/** 
+/**
  ** The BLOCK_HEADER structure serves as the header for each block.
- ** 
- ** The heaaders we are using for this project are similar to those described 
+ **
+ ** The heaaders we are using for this project are similar to those described
  ** in the book for the implicit free list in section 9.9.6, and in lecture
  ** In the implicit free packs both the size and allocated bit in one int.
  ** The size in the implicit free list includes the size of the header.
  **
- ** In this project we're going to use a struct that tracks additional 
+ ** In this project we're going to use a struct that tracks additional
  ** information in the block header.
- ** 
- ** The first piece of information is a 'packed_pointer' that combines the 
+ **
+ ** The first piece of information is a 'packed_pointer' that combines the
  ** absolute location (a memory address) of the next header and the alloc bit
- ** The headers must begin on an address divisible by 4. This means the last 
- ** two bits must be 0.  We use the least significant bit (LSB) to indicate 
+ ** The headers must begin on an address divisible by 4. This means the last
+ ** two bits must be 0.  We use the least significant bit (LSB) to indicate
  ** if the block is free: LSB = 0; or allocated LSB = 1.
  **
- ** The value stored in the size variable is either the size requested by 
- ** the user for allocated blocks, or the available payload size (not including 
+ ** The value stored in the size variable is either the size requested by
+ ** the user for allocated blocks, or the available payload size (not including
  ** the size of the header) for free blocks.
  ** This will allow us to calculate the memory utilization.  Memory utilization is
- ** the requested_size / (padding + header_size).  
+ ** the requested_size / (padding + header_size).
  ** The provided function Mem_Dump takes care of this calculation for us.
  **
  ** The end of the list (the last header) has the packed_pointer  set to NULL,
@@ -58,21 +58,22 @@ BLOCK_HEADER *first_header;  // this global variable is a pointer to the first h
 // ###############               Helper Functions               ####################
 // #################################################################################
 
-/**  
- ** We recommend you write some helper functions to unpack the headers 
+/**
+ ** We recommend you write some helper functions to unpack the headers
  ** and retrieve specific pieces of data. I wrote functions named:
- *  
+ *
  * TODO  1) Is_Allocated // return 1 if allocated 0 if not
  * TODO  2) Is_Free      // return 1 if free 0 if not
- * TODO  3) Get_Next_Header // unpacks the header and returns a pointer to the  
+ * TODO  3) Get_Next_Header // unpacks the header and returns a pointer to the
  * TODO  the next header, NULL is this is the last BLOCK_HEADER
- * TODO  4) Get_Size 
+ * TODO  4) Get_Size
  * TODO  5) Get_User_Pointer // the pointer that the user can write data to
- * TODO  6) Get_Header_From_User_Pointer // the pointer that the user writes data to - used in Mem_Free
+ * TODO  6) Get_Header_From_User_Pointer // the pointer that the user writes data to - used in
+ * Mem_Free
  * TODO  7) Set_Next_Pointer
  * TODO  8) Set_Allocated // set the allocated bit to 1
  * TODO  9) Set_Free // set the allocated bit to 0
- * TODO  10) Set_Size 
+ * TODO  10) Set_Size
  */
 
 // #################################################################################
@@ -80,19 +81,19 @@ BLOCK_HEADER *first_header;  // this global variable is a pointer to the first h
 // #################################################################################
 
 /**
- **  Function used to Initialize the memory allocator. 
- *!  Do not change this function. 
- *  Written by Cherin Joseph, Modified by Michael Doescher. 
- * 
- *!  Not intended to be called more than once by a program. 
- * 
+ **  Function used to Initialize the memory allocator.
+ *!  Do not change this function.
+ *  Written by Cherin Joseph, Modified by Michael Doescher.
+ *
+ *!  Not intended to be called more than once by a program.
+ *
  *?  Notes we're using mmap here instead of sbrk as in the book to take advantage of caching
- *?  as described in the OS lectures. 
- * 
+ *?  as described in the OS lectures.
+ *
  *  Study the end of the function where the headers are initialized for hints!
- * 
- *  @param sizeOfRegion:  Specifies the size of the chunk which needs to be allocated 
- *  @param policy_input:  indicates the policy to use eg: best fit is 0 
+ *
+ *  @param sizeOfRegion:  Specifies the size of the chunk which needs to be allocated
+ *  @param policy_input:  indicates the policy to use eg: best fit is 0
  *  @return            :  0 on success, -1 on failure
  */
 int Mem_Init(int sizeOfRegion, enum POLICY policy_input) {
@@ -114,7 +115,8 @@ int Mem_Init(int sizeOfRegion, enum POLICY policy_input) {
         return -1;
     }
 
-    /* Calculate padsize as the padding required to round up sizeOfRegion to a multiple of pagesize */
+    /* Calculate padsize as the padding required to round up sizeOfRegion to a multiple of pagesize
+     */
     pagesize = getpagesize();  //  Get the pagesize
     padsize = sizeOfRegion % pagesize;
     padsize = (pagesize - padsize) % pagesize;
@@ -157,20 +159,20 @@ int Mem_Init(int sizeOfRegion, enum POLICY policy_input) {
 // #################################################################################
 
 /**
- ** Function for allocating 'size' bytes. 
+ ** Function for allocating 'size' bytes.
  *
- * TODO:    Check for sanity of size - Return NULL when appropriate - at least 1 byte. 
+ * TODO:    Check for sanity of size - Return NULL when appropriate - at least 1 byte.
  * TODO:    Traverse the list of blocks and locate a free block which can accommodate
- *              the requested size based on the policy (e.g. first fit, best fit). 
- * TODO:    The next header must be aligned with an address divisible by 4. 
- *              Add padding to accomodate this requirement. 
- * TODO:    When allocating a block - split it into two blocks when possible. 
- *          ? the allocated block should go first and the free block second. 
- *          ? the free block must have a minimum payload size of 4 bytes.  
- *          ? do not split if the mininmum payload size can not be reserved. 
- * 
- * 
- * @return  :   the user writeable address of allocated block 
+ *              the requested size based on the policy (e.g. first fit, best fit).
+ * TODO:    The next header must be aligned with an address divisible by 4.
+ *              Add padding to accomodate this requirement.
+ * TODO:    When allocating a block - split it into two blocks when possible.
+ *          ? the allocated block should go first and the free block second.
+ *          ? the free block must have a minimum payload size of 4 bytes.
+ *          ? do not split if the mininmum payload size can not be reserved.
+ *
+ *
+ * @return  :   the user writeable address of allocated block
  *                  ! this is the first byte of the payload, not the address of the header
  *              NULL on failure
  */
@@ -189,8 +191,8 @@ void *Mem_Alloc(int size) {
 /**
  ** Function for freeing up a previously allocated block
  * TODO:    Mark the block as free
- * TODO:    Coalesce if one or both of the immediate neighbours are free 
- * 
+ * TODO:    Coalesce if one or both of the immediate neighbours are free
+ *
  *  @param ptr  :   Address of the block to be freed up i, this is the first address of the payload
  *  @return     :   0 on success
  *                  -1 if ptr is NULL
@@ -208,34 +210,37 @@ int Mem_Free(void *ptr) {
 // #################################################################################
 
 /**
- **  Function to be used for debugging. 
- *   Prints out a list of all the blocks along with the following information for each block. 
- * 
- * 
+ **  Function to be used for debugging.
+ *   Prints out a list of all the blocks along with the following information for each block.
+ *
+ *
  *  @param  No.      : Serial number of the block
- *  @param  Status   : free/busy 
- *  @param  Begin    : Address of the first user allocated byte - i.e. start of the payload 
- *  @param  End      : Address of the last byte in the block (payload or padding) 
- *  @param  Payload  : Payload size of the block - the size requested by the user or free size 
- *  @param  Padding  : Padding size of the block 
- *  @param  T_Size   : Total size of the block (including the header, payload, and padding) 
- *  @param  H_Begin  : Address of the block header 
+ *  @param  Status   : free/busy
+ *  @param  Begin    : Address of the first user allocated byte - i.e. start of the payload
+ *  @param  End      : Address of the last byte in the block (payload or padding)
+ *  @param  Payload  : Payload size of the block - the size requested by the user or free size
+ *  @param  Padding  : Padding size of the block
+ *  @param  T_Size   : Total size of the block (including the header, payload, and padding)
+ *  @param  H_Begin  : Address of the block header
  */
 void Mem_Dump() {
     unsigned id = 0;
     unsigned total_free_size = 0;
     unsigned total_payload_size = 0;
     unsigned total_padding_size = 0;
-    unsigned total_used_size = sizeof(BLOCK_HEADER);  // end of heap header not counted in loop below
+    unsigned total_used_size =
+        sizeof(BLOCK_HEADER);  // end of heap header not counted in loop below
     char status[5];
     unsigned payload = 0;
     unsigned padding = 0;
     BLOCK_HEADER *current = first_header;
 
-    fprintf(stdout, "************************************Block list***********************************\n");
-    fprintf(stdout, "%5s %7s %12s %12s %9s %9s %8s %12s\n",
-            "Id.", "Status", "Begin", "End", "Payload", "Padding", "T_Size", "H_Begin");
-    fprintf(stdout, "---------------------------------------------------------------------------------\n");
+    fprintf(stdout,
+            "************************************Block list***********************************\n");
+    fprintf(stdout, "%5s %7s %12s %12s %9s %9s %8s %12s\n", "Id.", "Status", "Begin", "End",
+            "Payload", "Padding", "T_Size", "H_Begin");
+    fprintf(stdout,
+            "---------------------------------------------------------------------------------\n");
 
     while (current->packed_pointer != NULL) {
         id++;
@@ -246,7 +251,8 @@ void Mem_Dump() {
         if ((unsigned)current->packed_pointer & 1) {  // allocated block
             strcpy(status, "Busy");
             payload = current->size;
-            padding = (unsigned)((unsigned)next - (unsigned)current) - payload - sizeof(BLOCK_HEADER);
+            padding =
+                (unsigned)((unsigned)next - (unsigned)current) - payload - sizeof(BLOCK_HEADER);
             total_payload_size += payload;
             total_padding_size += padding;
             total_used_size += payload + padding + sizeof(BLOCK_HEADER);
@@ -259,17 +265,20 @@ void Mem_Dump() {
         }
         unsigned total_block_size = sizeof(BLOCK_HEADER) + padding + payload;
 
-        fprintf(stdout, "%5d %7s %12p %12p %9u %9u %8u %12p\n",
-                id, status, begin, end, payload, padding, total_block_size, current);
+        fprintf(stdout, "%5d %7s %12p %12p %9u %9u %8u %12p\n", id, status, begin, end, payload,
+                padding, total_block_size, current);
         current = next;
     }
-    fprintf(stdout, "---------------------------------------------------------------------------------\n");
-    fprintf(stdout, "#################################################################################\n");
+    fprintf(stdout,
+            "---------------------------------------------------------------------------------\n");
+    fprintf(stdout,
+            "#################################################################################\n");
     fprintf(stdout, "Total payload size = %d\n", total_payload_size);
     fprintf(stdout, "Total padding size = %d\n", total_padding_size);
     fprintf(stdout, "Total free size = %d\n", total_free_size);
     fprintf(stdout, "Total used size = %d\n", total_used_size);
-    fprintf(stdout, "#################################################################################\n");
+    fprintf(stdout,
+            "#################################################################################\n");
     fflush(stdout);
 
     return;
