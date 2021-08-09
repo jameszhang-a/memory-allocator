@@ -90,7 +90,7 @@ int Is_Allocated(BLOCK_HEADER *p) {
  * 
  * @param   p    pointer to a block header
  */
-void Set_Allocated(BLOCK_HEADER *p) {
+void *Set_Allocated(BLOCK_HEADER *p) {
     int *pointer = p->packed_pointer;
     int info = *pointer;
     info = info | 1;
@@ -109,7 +109,7 @@ int Is_Free(BLOCK_HEADER *phead) { return 0; }
  * 
  * @param   p    pointer to a block header
  */
-void Set_Free(BLOCK_HEADER *phead) { return; }
+void *Set_Free(BLOCK_HEADER *phead) { return; }
 
 /**
  * unpacks the header and returns a pointer to the the next header
@@ -133,7 +133,7 @@ int Get_Size(BLOCK_HEADER *p) { return p->size; }
  * @param   cur Current header
  * @return  Pointer to memory that user can use
  */
-void *Get_User_Pointer(BLOCK_HEADER *cur) { return cur + sizeof(BLOCK_HEADER); }
+void *Get_User_Pointer(BLOCK_HEADER *cur) { return (unsigned char *)cur + sizeof(BLOCK_HEADER); }
 
 /**
  * Returns an address that to head, given an address the user can use
@@ -148,7 +148,7 @@ void *Get_Header_From_User_Pointer(void *cur) { return cur - sizeof(BLOCK_HEADER
  * 
  * @param   cur Current header
  */
-void Set_Next_Pointer(BLOCK_HEADER *cur) { return; }
+void Set_Next_Pointer(BLOCK_HEADER *cur, BLOCK_HEADER *dst) { return; }
 
 /**
  * Sets the size of the block
@@ -169,10 +169,14 @@ void *Get_Next_Free(int size) {
     // Searches through all of the blocks
     while (temp->packed_pointer != NULL) {
         // If has room and free
-        if (Get_Size(temp) >= size && Is_Free(temp)) {
+        if (Is_Allocated(temp)) {
+            BLOCK_HEADER *tempAddress = Set_Free(temp);
+            temp = (BLOCK_HEADER *)Get_Next_Header(tempAddress);
+        } else if (Get_Size(temp) < size) {
+            temp = (BLOCK_HEADER *)Get_Next_Header(temp);
+        } else {
             return temp;
         }
-        temp = (BLOCK_HEADER *)Get_Next_Header(temp);
     }
 
     printf("Can't find free space, something wrong\n");
@@ -284,14 +288,31 @@ void *Mem_Alloc(int size) {
     if (size < 1) return NULL;
 
     // Find a suitable block
-    BLOCK_HEADER *temp = Get_Next_Free(size);
+    BLOCK_HEADER *free;
+
+    if ((free = Get_Next_Free(size)) == NULL) {
+        printf("Didn't find free spot\n Do something about it\n");
+        return NULL;
+    }
+
+    // header for splitting the block
+    BLOCK_HEADER *next;
+
+    // If there is only size of header left, no split
+    if (free->size == sizeof(BLOCK_HEADER)) {
+        free->packed_pointer = Set_Allocated(free->packed_pointer);
+        return free;
+    }
+
+    // int dest
+    //     Set_Next_Pointer(next, );
 
     // Once a suitable block has been found
     // Mark as allocated
-    Set_Allocated(temp);
+    Set_Allocated(free);
 
     // Set requested size
-    Set_Size(temp, size);
+    Set_Size(free, size);
 
     // Get distance to next pointer
 

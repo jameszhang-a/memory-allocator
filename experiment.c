@@ -9,6 +9,5 @@ typedef struct BLOCK_HEADER {
 BLOCK_HEADER *first_header;  // this global variable is a pointer to the first header
 
 int main() {
-    int x = NULL;
-    printf("%i", x);
+    printf("%lu", sizeof(BLOCK_HEADER));
 }
