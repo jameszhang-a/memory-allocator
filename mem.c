@@ -342,10 +342,10 @@ void *Mem_Alloc(int size) {
 
     printf("Free block at: %p\tSize is: %i\tPoints to: %p\n\n", free, free->size, free->packed_pointer);
 
-    printf("Padded size: %i\n", resize);
+    printf("Padded size: %i\tSplit size: %i\n", resize, free->size - sizeof(BLOCK_HEADER) - resize);
 
     // If there is only size of header left, no split
-    if (free->size - sizeof(BLOCK_HEADER) - resize < 4) {
+    if ((int)(free->size - sizeof(BLOCK_HEADER) - resize) < 4) {
         printf("\nNo need to split\n\n");
 
         free->packed_pointer = Set_Allocated(free->packed_pointer);
@@ -511,7 +511,7 @@ int main() {
     printf("Block: %p \t point: %p \t, is allocated: %i\n", block, block->packed_pointer, Is_Allocated(block));
 
     */
-    int *x = Mem_Alloc(3);
+    int *x = Mem_Alloc(4080);
     int *y = Mem_Alloc(8);
 
     Mem_Dump();
