@@ -6,6 +6,7 @@
  * PROVIDES: Contains a set of library functions for memory allocation
  * *****************************************************************************/
 
+#include "mem.h"
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -14,8 +15,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include "mem.h"
 // fitting policy
 enum POLICY policy;
 
@@ -440,12 +439,13 @@ int Mem_Free(void *ptr) {
 
     // printf("Freeing block: %p\n", free);
 
-    // Check valid input
-    if (ptr == NULL || Is_Free(ptr)) return -1;
-
+    // printf("Pointer is: %p\n", ptr);
     if (Valid_Block(ptr) == 0) {
         return -1;
     }
+    // Check valid input
+    if (ptr == NULL || Is_Free(ptr)) return -1;
+
 
     // Free up current block
     Set_Free(free);
