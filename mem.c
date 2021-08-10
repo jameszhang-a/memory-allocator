@@ -5,8 +5,7 @@
  * EDITED: for CS354 UW Madison Spring 2021 - Michael Doescher
  * PROVIDES: Contains a set of library functions for memory allocation
  * *****************************************************************************/
-
-#include "mem.h"
+//Project by James Zhang
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -15,6 +14,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include "mem.h"
 // fitting policy
 enum POLICY policy;
 
