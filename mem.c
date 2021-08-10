@@ -233,6 +233,23 @@ void *Get_Next_Free(int size) {
     return NULL;
 }
 
+/**
+ * @brief Gets a unmodified version of the next pointer
+ * 
+ * @param cur   a pointer to a block header
+ * @return      unmodified version of pointer
+ */
+void *Get_Free(BLOCK_HEADER *cur) {
+    printf("GET FREE POINTER: Before -> %p\n", cur->packed_pointer);
+    if (Is_Allocated(cur)) {
+        printf("After: %p\n", (unsigned char *)cur->packed_pointer - 1);
+        return (unsigned char *)cur->packed_pointer - 1;
+    } else {
+        printf("After: %p\n", cur->packed_pointer);
+        return cur->packed_pointer;
+    }
+}
+
 // #################################################################################
 // ###############               Init Function                  ####################
 // #################################################################################
@@ -406,7 +423,53 @@ void *Mem_Alloc(int size) {
  *                ? hint: check all block headers, determine if the alloc bit is set
  */
 int Mem_Free(void *ptr) {
-    /* Your code should go in here */
+    ptr = Get_Header_From_User_Pointer(ptr);
+
+    BLOCK_HEADER *free = ptr;
+
+    printf("Freeing block: %p\nSub block is: %p\n", ptr, free);
+
+    // Check valid input
+    if (ptr == NULL || Is_Free(ptr)) return -1;
+
+    // Free up current block
+    Set_Free(free);
+
+    // Get the block above
+    BLOCK_HEADER *curr = first_header;
+    while (Get_Free(curr) != free) {
+        printf("\n\nStarting at: %p\tNext up: %p\n", curr, Get_Free(curr));
+        if (Get_Free(curr) == NULL) {
+            printf("Trying to free something that don't exist!\n");
+            return -1;
+        }
+
+        if (Is_Allocated(curr)) {
+            printf("Is allocated\n");
+
+            // Saves a refrence to
+            BLOCK_HEADER *temp = curr;
+
+            // Sets the last bit to 0
+            Set_Free(curr);
+
+            // Traverses to the free address
+            curr = Get_Next_Header(curr);
+
+            // Make the original back to allocated
+            Set_Allocated(temp);
+            printf("new: %p\n\n", curr);
+        } else if (Is_Free(curr)) {
+            curr = Get_Next_Header(curr);
+        } else {
+            printf("Somethings wrong: freeing traverse error\n");
+        }
+    }
+
+    // Now curr should point to the block that is right above the one to free
+
+    printf("Delete block: %p\tsize: %i\tnext: %p\n", free, free->size, free->packed_pointer);
+    printf("Above block: %p \t size: %i\tnext: %p\n", curr, curr->size, curr->packed_pointer);
 
     return -1;
 }
@@ -526,5 +589,12 @@ int main() {
     */
 
     int *x = Mem_Alloc(6);
+    int *y = Mem_Alloc(16);
+    int *z = Mem_Alloc(7);
+    int p = 5;
+    Mem_Dump();
+
+    Mem_Free(y);
+
     Mem_Dump();
 }

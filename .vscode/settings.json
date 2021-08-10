@@ -1,6 +1,6 @@
 {
 	"code-runner.executorMap": {
-		"c": "cd $dir && gcc -m32 $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt"
+		"c": "cd $dir && gcc -m32 $fileName -g -o $fileNameWithoutExt && $dir$fileNameWithoutExt"
 	},
 	//"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0}",
